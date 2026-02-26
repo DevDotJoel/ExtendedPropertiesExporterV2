@@ -1,0 +1,3 @@
+{
+  "query": "EXECUTE sp_addextendedproperty @name = N'{{Extendend_Name}}', @value = N'{{Extended_Value}}', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'{{Table_Name}}', @level2type = N'COLUMN', @level2name = N'{{Column_Name}}';"
+}
