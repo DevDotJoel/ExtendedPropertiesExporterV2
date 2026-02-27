@@ -36,12 +36,7 @@ public sealed class SqlFileUpdater
         }
     }
 
-    /// <summary>
-    /// Splits the file into GO-delimited batches, removes any batch
-    /// containing sp_addextendedproperty, and rebuilds the file.
-    /// Handles all format variants: EXEC/EXECUTE, sys. prefix,
-    /// mixed-case Go/GO, blank lines, semicolons, etc.
-    /// </summary>
+    // Remove blocos que contenham sp_addextendedproperty
     private static List<string> RemoveExtendedPropertyBatches(string[] lines)
     {
         var batches = SplitIntoBatches(lines);
