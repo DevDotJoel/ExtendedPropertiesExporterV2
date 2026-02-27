@@ -35,7 +35,10 @@ public static class Program
                 var tables = dbService.GetTablesWithExtendedProperties();
                 Console.WriteLine($"Found {tables.Count} tables.");
 
-                var fileUpdater = new SqlFileUpdater(rootPath, appSettings.ExtendedPropertyTemplate);
+                var fileUpdater = new SqlFileUpdater(
+                    rootPath,
+                    appSettings.ColumnPropertyTemplate,
+                    appSettings.TablePropertyTemplate);
                 Console.WriteLine($"Indexed {fileUpdater.IndexedFileCount} .sql files.");
 
                 Console.WriteLine("Updating project files...");

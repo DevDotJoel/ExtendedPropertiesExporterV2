@@ -3,10 +3,8 @@ namespace ExtendedPropertiesExporter.App.Settings;
 public sealed class AppSettings
 {
     public required string ConnectionStringTemplate { get; init; }
-    public required string ExtendedPropertyTemplate { get; init; }
-    public required string GetTablesQuery { get; init; }
-    public required string GetColumnsQuery { get; init; }
-    public required string GetExtendedPropertiesQuery { get; init; }
+    public required string ColumnPropertyTemplate { get; init; }
+    public required string TablePropertyTemplate { get; init; }
     public required string GetAllExtendedPropertiesQuery { get; init; }
 
     public static AppSettings Load(string basePath)
@@ -22,10 +20,8 @@ public sealed class AppSettings
         return new AppSettings
         {
             ConnectionStringTemplate = settings["ConnectionString"],
-            ExtendedPropertyTemplate = template["query"],
-            GetTablesQuery = File.ReadAllText(Path.Combine(basePath, "Queries", "GetTables.sql")),
-            GetColumnsQuery = File.ReadAllText(Path.Combine(basePath, "Queries", "GetColumns.sql")),
-            GetExtendedPropertiesQuery = File.ReadAllText(Path.Combine(basePath, "Queries", "GetExtendedProperties.sql")),
+            ColumnPropertyTemplate = template["columnQuery"],
+            TablePropertyTemplate = template["tableQuery"],
             GetAllExtendedPropertiesQuery = File.ReadAllText(Path.Combine(basePath, "Queries", "GetAllExtendedProperties.sql")),
         };
     }

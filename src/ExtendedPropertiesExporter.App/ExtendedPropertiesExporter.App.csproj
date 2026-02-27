@@ -18,15 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Queries\GetTables.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Queries\GetColumns.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Queries\GetExtendedProperties.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Queries\GetAllExtendedProperties.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -15,12 +15,14 @@ public sealed partial class SqlFileUpdater
     private const string BatchSeparator = "GO";
     private const string ExtendedPropertyMarker = "sp_addextendedproperty";
 
-    private readonly string _extendedPropertyTemplate;
+    private readonly string _columnPropertyTemplate;
+    private readonly string _tablePropertyTemplate;
     private readonly Dictionary<string, List<string>> _sqlFileIndex;
 
-    public SqlFileUpdater(string rootPath, string extendedPropertyTemplate)
+    public SqlFileUpdater(string rootPath, string columnPropertyTemplate, string tablePropertyTemplate)
     {
-        _extendedPropertyTemplate = extendedPropertyTemplate;
+        _columnPropertyTemplate = columnPropertyTemplate;
+        _tablePropertyTemplate = tablePropertyTemplate;
         _sqlFileIndex = BuildFileIndex(rootPath);
     }
 
@@ -144,11 +146,16 @@ public sealed partial class SqlFileUpdater
 
         foreach (var property in properties)
         {
-            var statement = _extendedPropertyTemplate
-                .Replace("{{Extendend_Name}}", property.Name)
-                .Replace("{{Extended_Value}}", property.Value)
+            var template = property.IsTableLevel
+                ? _tablePropertyTemplate
+                : _columnPropertyTemplate;
+
+            var statement = template
+                .Replace("{{Property_Name}}", property.Name)
+                .Replace("{{Property_Value}}", property.Value)
+                .Replace("{{Schema_Name}}", property.SchemaName)
                 .Replace("{{Table_Name}}", property.ObjectName)
-                .Replace("{{Column_Name}}", property.ColumnName)
+                .Replace("{{Column_Name}}", property.ColumnName ?? string.Empty)
                 .Trim();
 
             stream.WriteLine();
