@@ -18,8 +18,8 @@ public static class Program
 
             if (!Directory.Exists(rootPath))
             {
-                Console.WriteLine($"Error: Path not found: {rootPath}");
-                Console.WriteLine("Please try again.\n");
+                Console.WriteLine($"Erro: Caminho não encontrado: {rootPath}");
+                Console.WriteLine("Tente novamente.\n");
                 continue;
             }
 
@@ -30,31 +30,31 @@ public static class Program
             try
             {
                 using var dbService = new DatabaseService(connectionString, appSettings);
-                Console.WriteLine($"Connected to {databaseName} on {serverName}.");
+                Console.WriteLine($"Ligado a {databaseName} em {serverName}.");
 
                 var tables = dbService.GetTablesWithExtendedProperties();
-                Console.WriteLine($"Found {tables.Count} tables.");
+                Console.WriteLine($"Encontradas {tables.Count} tabelas.");
 
                 var fileUpdater = new SqlFileUpdater(
                     rootPath,
                     appSettings.ColumnPropertyTemplate,
                     appSettings.TablePropertyTemplate);
-                Console.WriteLine($"Indexed {fileUpdater.IndexedFileCount} .sql files.");
+                Console.WriteLine($"Indexados {fileUpdater.IndexedFileCount} ficheiros .sql.");
 
-                Console.WriteLine("Updating project files...");
+                Console.WriteLine("A atualizar ficheiros do projeto...");
                 foreach (var table in tables)
                 {
                     var results = fileUpdater.UpdateTable(table);
                     LogUpdateResults(table, results);
                 }
 
-                Console.WriteLine("Done.");
+                Console.WriteLine("Concluído.");
                 break;
             }
             catch (Microsoft.Data.SqlClient.SqlException ex)
             {
-                Console.WriteLine($"Could not connect: {ex.Message}");
-                Console.WriteLine("Please try again.\n");
+                Console.WriteLine($"Não foi possível ligar: {ex.Message}");
+                Console.WriteLine("Tente novamente.\n");
             }
         }
     }
@@ -66,13 +66,13 @@ public static class Program
             switch (result)
             {
                 case UpdateResult.Updated:
-                    Console.WriteLine($"  Updated {filePath} ({table.ExtendedProperties.Count} properties)");
+                    Console.WriteLine($"  Atualizado {filePath} ({table.ExtendedProperties.Count} propriedades)");
                     break;
                 case UpdateResult.NotFound:
-                    Console.WriteLine($"  Skipped {table.Name} — no matching .sql file.");
+                    Console.WriteLine($"  Ignorado {table.Name} — ficheiro .sql não encontrado.");
                     break;
                 case UpdateResult.NoTableDefinition:
-                    Console.WriteLine($"  Skipped {filePath} — not a CREATE TABLE file.");
+                    Console.WriteLine($"  Ignorado {filePath} — não contém CREATE TABLE.");
                     break;
             }
         }
@@ -93,13 +93,13 @@ public static class Program
 
             if (string.IsNullOrEmpty(serverName) || string.IsNullOrEmpty(databaseName))
             {
-                Console.WriteLine("Server name and database name are required.\n");
+                Console.WriteLine("O nome do servidor e da base de dados são obrigatórios.\n");
                 continue;
             }
 
             if (string.IsNullOrEmpty(rootPath))
             {
-                Console.WriteLine("Root path is required.\n");
+                Console.WriteLine("O caminho raiz é obrigatório.\n");
                 continue;
             }
 

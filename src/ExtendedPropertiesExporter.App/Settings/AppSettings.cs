@@ -11,11 +11,11 @@ public sealed class AppSettings
     {
         var settingsJson = File.ReadAllText(Path.Combine(basePath, "appsettings.json"));
         var settings = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(settingsJson)
-            ?? throw new InvalidOperationException("Failed to deserialize appsettings.json.");
+            ?? throw new InvalidOperationException("Falha ao desserializar appsettings.json.");
 
         var templateJson = File.ReadAllText(Path.Combine(basePath, "Templates", "template.json"));
         var template = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(templateJson)
-            ?? throw new InvalidOperationException("Failed to deserialize template.json.");
+            ?? throw new InvalidOperationException("Falha ao desserializar template.json.");
 
         return new AppSettings
         {

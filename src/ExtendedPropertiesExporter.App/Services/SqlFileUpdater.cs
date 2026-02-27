@@ -86,7 +86,6 @@ public sealed partial class SqlFileUpdater
                 line.Contains(ExtendedPropertyMarker, StringComparison.OrdinalIgnoreCase)))
             .ToList();
 
-        // Remove trailing empty batches
         while (kept.Count > 0 && kept[^1].All(string.IsNullOrWhiteSpace))
         {
             kept.RemoveAt(kept.Count - 1);
@@ -131,7 +130,6 @@ public sealed partial class SqlFileUpdater
             }
         }
 
-        // Trim trailing blank lines
         while (output.Count > 0 && string.IsNullOrWhiteSpace(output[^1]))
         {
             output.RemoveAt(output.Count - 1);
@@ -151,11 +149,11 @@ public sealed partial class SqlFileUpdater
                 : _columnPropertyTemplate;
 
             var statement = template
-                .Replace("{{Property_Name}}", property.Name)
-                .Replace("{{Property_Value}}", property.Value)
-                .Replace("{{Schema_Name}}", property.SchemaName)
-                .Replace("{{Table_Name}}", property.ObjectName)
-                .Replace("{{Column_Name}}", property.ColumnName ?? string.Empty)
+                .Replace("{{Property_Name}}", EscapeSql(property.Name))
+                .Replace("{{Property_Value}}", EscapeSql(property.Value))
+                .Replace("{{Schema_Name}}", EscapeSql(property.SchemaName))
+                .Replace("{{Table_Name}}", EscapeSql(property.ObjectName))
+                .Replace("{{Column_Name}}", EscapeSql(property.ColumnName ?? string.Empty))
                 .Trim();
 
             stream.WriteLine();
@@ -163,6 +161,8 @@ public sealed partial class SqlFileUpdater
             stream.WriteLine(statement);
         }
     }
+
+    private static string EscapeSql(string value) => value.Replace("'", "''");
 
     [GeneratedRegex(@"CREATE\s+TABLE", RegexOptions.IgnoreCase)]
     private static partial Regex CreateTableRegex();
