@@ -30,7 +30,7 @@ public static class Program
             try
             {
                 using var dbService = new DatabaseService(connectionString, appSettings);
-                Console.WriteLine($"Ligado a {databaseName} em {serverName}.");
+                Console.WriteLine($"Conectado a {databaseName} em {serverName}.");
 
                 var tables = dbService.GetTablesWithExtendedProperties();
                 Console.WriteLine($"Encontradas {tables.Count} tabelas.");
@@ -72,7 +72,7 @@ public static class Program
                     Console.WriteLine($"  Ignorado {table.Name} — ficheiro .sql não encontrado.");
                     break;
                 case UpdateResult.NoTableDefinition:
-                    Console.WriteLine($"  Ignorado {filePath} — não contém CREATE TABLE.");
+                    Console.WriteLine($"  Ignorado {filePath} — não contém CREATE TABLE."); // caso seja sp's views functions etc
                     break;
             }
         }
@@ -82,13 +82,13 @@ public static class Program
     {
         while (true)
         {
-            Console.Write("Server Name: ");
+            Console.Write("Nome Servidor: ");
             var serverName = Console.ReadLine()?.Trim();
 
-            Console.Write("Database Name: ");
+            Console.Write("Nome Base Dados: ");
             var databaseName = Console.ReadLine()?.Trim();
 
-            Console.Write("Root Path: ");
+            Console.Write("Caminho raiz do projeto: ");
             var rootPath = Console.ReadLine()?.Trim();
 
             if (string.IsNullOrEmpty(serverName) || string.IsNullOrEmpty(databaseName))
