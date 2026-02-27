@@ -27,6 +27,9 @@
     <None Update="Queries\GetExtendedProperties.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Queries\GetAllExtendedProperties.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Templates\template.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

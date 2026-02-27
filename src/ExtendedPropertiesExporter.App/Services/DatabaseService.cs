@@ -18,20 +18,37 @@ public sealed class DatabaseService : IDisposable
 
     public List<TableInfo> GetTablesWithExtendedProperties()
     {
-        var tables = GetTableNames();
+        var allProperties = GetAllExtendedProperties();
 
-        foreach (var table in tables)
-        {
-            var columns = GetColumnNames(table.Name);
-
-            foreach (var column in columns)
+        return allProperties
+            .GroupBy(p => p.ObjectName, StringComparer.OrdinalIgnoreCase)
+            .Select(g => new TableInfo
             {
-                var properties = GetExtendedProperties(table.Name, column);
-                table.ExtendedProperties.AddRange(properties);
-            }
+                Name = g.Key,
+                ExtendedProperties = g.ToList()
+            })
+            .ToList();
+    }
+
+    private List<ExtendedProperty> GetAllExtendedProperties()
+    {
+        var properties = new List<ExtendedProperty>();
+
+        using var command = new SqlCommand(_settings.GetAllExtendedPropertiesQuery, _connection);
+        using var reader = command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            properties.Add(new ExtendedProperty
+            {
+                ObjectName = reader.GetString(0),
+                ColumnName = reader.GetString(1),
+                Name = reader.GetString(2),
+                Value = reader.GetString(3),
+            });
         }
 
-        return tables;
+        return properties;
     }
 
     private List<TableInfo> GetTableNames()

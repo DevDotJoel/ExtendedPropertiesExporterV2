@@ -7,6 +7,7 @@ public sealed class AppSettings
     public required string GetTablesQuery { get; init; }
     public required string GetColumnsQuery { get; init; }
     public required string GetExtendedPropertiesQuery { get; init; }
+    public required string GetAllExtendedPropertiesQuery { get; init; }
 
     public static AppSettings Load(string basePath)
     {
@@ -25,6 +26,7 @@ public sealed class AppSettings
             GetTablesQuery = File.ReadAllText(Path.Combine(basePath, "Queries", "GetTables.sql")),
             GetColumnsQuery = File.ReadAllText(Path.Combine(basePath, "Queries", "GetColumns.sql")),
             GetExtendedPropertiesQuery = File.ReadAllText(Path.Combine(basePath, "Queries", "GetExtendedProperties.sql")),
+            GetAllExtendedPropertiesQuery = File.ReadAllText(Path.Combine(basePath, "Queries", "GetAllExtendedProperties.sql")),
         };
     }
 }
