@@ -1,6 +1,6 @@
 # Extended Properties Exporter
 
-Aplicação de consola que atualiza as **Extended Properties** nos ficheiros `.sql` de um projeto de base de dados (SSDT).
+Aplicação de consola que atualiza as **Extended Properties** nos ficheiros `.sql` de um projeto de base de dados.
 
 ## O que faz
 
