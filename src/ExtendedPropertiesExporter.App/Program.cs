@@ -1,4 +1,5 @@
-﻿using ExtendedPropertiesExporter.App.Services;
+﻿using ExtendedPropertiesExporter.App.Models;
+using ExtendedPropertiesExporter.App.Services;
 using ExtendedPropertiesExporter.App.Settings;
 
 namespace ExtendedPropertiesExporter.App;
@@ -13,11 +14,11 @@ public static class Program
 
         while (true)
         {
-            var (serverName, databaseName, projectTablesPath) = ReadUserInput();
+            var (serverName, databaseName, rootPath) = ReadUserInput();
 
-            if (!Directory.Exists(projectTablesPath))
+            if (!Directory.Exists(rootPath))
             {
-                Console.WriteLine($"Error: Path not found: {projectTablesPath}");
+                Console.WriteLine($"Error: Path not found: {rootPath}");
                 Console.WriteLine("Please try again.\n");
                 continue;
             }
@@ -34,20 +35,14 @@ public static class Program
                 var tables = dbService.GetTablesWithExtendedProperties();
                 Console.WriteLine($"Found {tables.Count} tables.");
 
-                var fileUpdater = new SqlFileUpdater(projectTablesPath, appSettings.ExtendedPropertyTemplate);
+                var fileUpdater = new SqlFileUpdater(rootPath, appSettings.ExtendedPropertyTemplate);
+                Console.WriteLine($"Indexed {fileUpdater.IndexedFileCount} .sql files.");
 
                 Console.WriteLine("Updating project files...");
                 foreach (var table in tables)
                 {
-                    try
-                    {
-                        fileUpdater.UpdateTable(table);
-                        Console.WriteLine($"  Updated {table.Name}.sql ({table.ExtendedProperties.Count} properties)");
-                    }
-                    catch (FileNotFoundException)
-                    {
-                        Console.WriteLine($"  Skipped {table.Name}.sql — file not found.");
-                    }
+                    var results = fileUpdater.UpdateTable(table);
+                    LogUpdateResults(table, results);
                 }
 
                 Console.WriteLine("Done.");
@@ -61,7 +56,26 @@ public static class Program
         }
     }
 
-    private static (string ServerName, string DatabaseName, string ProjectTablesPath) ReadUserInput()
+    private static void LogUpdateResults(TableInfo table, List<(string FilePath, UpdateResult Result)> results)
+    {
+        foreach (var (filePath, result) in results)
+        {
+            switch (result)
+            {
+                case UpdateResult.Updated:
+                    Console.WriteLine($"  Updated {filePath} ({table.ExtendedProperties.Count} properties)");
+                    break;
+                case UpdateResult.NotFound:
+                    Console.WriteLine($"  Skipped {table.Name} — no matching .sql file.");
+                    break;
+                case UpdateResult.NoTableDefinition:
+                    Console.WriteLine($"  Skipped {filePath} — not a CREATE TABLE file.");
+                    break;
+            }
+        }
+    }
+
+    private static (string ServerName, string DatabaseName, string RootPath) ReadUserInput()
     {
         while (true)
         {
@@ -71,8 +85,8 @@ public static class Program
             Console.Write("Database Name: ");
             var databaseName = Console.ReadLine()?.Trim();
 
-            Console.Write("Project Tables Path: ");
-            var projectTablesPath = Console.ReadLine()?.Trim();
+            Console.Write("Root Path: ");
+            var rootPath = Console.ReadLine()?.Trim();
 
             if (string.IsNullOrEmpty(serverName) || string.IsNullOrEmpty(databaseName))
             {
@@ -80,13 +94,13 @@ public static class Program
                 continue;
             }
 
-            if (string.IsNullOrEmpty(projectTablesPath))
+            if (string.IsNullOrEmpty(rootPath))
             {
-                Console.WriteLine("Project tables path is required.\n");
+                Console.WriteLine("Root path is required.\n");
                 continue;
             }
 
-            return (serverName, databaseName, projectTablesPath);
+            return (serverName, databaseName, rootPath);
         }
     }
 }

@@ -1,42 +1,80 @@
+using System.Text.RegularExpressions;
 using ExtendedPropertiesExporter.App.Models;
 
 namespace ExtendedPropertiesExporter.App.Services;
 
-public sealed class SqlFileUpdater
+public enum UpdateResult
+{
+    Updated,
+    NotFound,
+    NoTableDefinition
+}
+
+public sealed partial class SqlFileUpdater
 {
     private const string BatchSeparator = "GO";
     private const string ExtendedPropertyMarker = "sp_addextendedproperty";
 
-    private readonly string _projectTablesPath;
     private readonly string _extendedPropertyTemplate;
+    private readonly Dictionary<string, List<string>> _sqlFileIndex;
 
-    public SqlFileUpdater(string projectTablesPath, string extendedPropertyTemplate)
+    public SqlFileUpdater(string rootPath, string extendedPropertyTemplate)
     {
-        _projectTablesPath = projectTablesPath;
         _extendedPropertyTemplate = extendedPropertyTemplate;
+        _sqlFileIndex = BuildFileIndex(rootPath);
     }
 
-    public void UpdateTable(TableInfo table)
+    public int IndexedFileCount => _sqlFileIndex.Count;
+
+    public List<(string FilePath, UpdateResult Result)> UpdateTable(TableInfo table)
     {
-        var filePath = Path.Combine(_projectTablesPath, $"{table.Name}.sql");
+        var results = new List<(string FilePath, UpdateResult Result)>();
 
-        if (!File.Exists(filePath))
+        if (!_sqlFileIndex.TryGetValue(table.Name, out var matchingFiles))
         {
-            throw new FileNotFoundException($"SQL file not found for table '{table.Name}'.", filePath);
+            results.Add((string.Empty, UpdateResult.NotFound));
+            return results;
         }
 
-        var lines = File.ReadAllLines(filePath);
-        var cleanedLines = RemoveExtendedPropertyBatches(lines);
-
-        File.WriteAllLines(filePath, cleanedLines);
-
-        if (table.ExtendedProperties.Count > 0)
+        foreach (var filePath in matchingFiles)
         {
-            AppendExtendedProperties(filePath, table.ExtendedProperties);
+            var content = File.ReadAllText(filePath);
+
+            if (!CreateTableRegex().IsMatch(content))
+            {
+                results.Add((filePath, UpdateResult.NoTableDefinition));
+                continue;
+            }
+
+            var lines = File.ReadAllLines(filePath);
+            var cleanedLines = RemoveExtendedPropertyBatches(lines);
+
+            File.WriteAllLines(filePath, cleanedLines);
+
+            if (table.ExtendedProperties.Count > 0)
+            {
+                AppendExtendedProperties(filePath, table.ExtendedProperties);
+            }
+
+            results.Add((filePath, UpdateResult.Updated));
         }
+
+        return results;
     }
 
-    // Remove blocos que contenham sp_addextendedproperty
+    private static Dictionary<string, List<string>> BuildFileIndex(string rootPath)
+    {
+        return Directory
+            .EnumerateFiles(rootPath, "*.sql", SearchOption.AllDirectories)
+            .GroupBy(
+                f => Path.GetFileNameWithoutExtension(f),
+                StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                g => g.Key,
+                g => g.ToList(),
+                StringComparer.OrdinalIgnoreCase);
+    }
+
     private static List<string> RemoveExtendedPropertyBatches(string[] lines)
     {
         var batches = SplitIntoBatches(lines);
@@ -118,4 +156,7 @@ public sealed class SqlFileUpdater
             stream.WriteLine(statement);
         }
     }
+
+    [GeneratedRegex(@"CREATE\s+TABLE", RegexOptions.IgnoreCase)]
+    private static partial Regex CreateTableRegex();
 }
