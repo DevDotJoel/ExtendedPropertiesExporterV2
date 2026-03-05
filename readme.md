@@ -1,4 +1,4 @@
-# Extended Properties Exporter
+# CMD_ExtendedPropertiesExporter
 
 Aplicação de consola que exporta as **Extended Properties** de uma base de dados SQL Server e atualiza os ficheiros `.sql` de um projeto.
 
