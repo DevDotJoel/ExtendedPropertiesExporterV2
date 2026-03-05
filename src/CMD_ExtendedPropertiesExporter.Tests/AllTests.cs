@@ -493,4 +493,44 @@ public sealed class SqlFileUpdaterTests : IDisposable
         Assert.Single(results);
         Assert.Equal(UpdateResult.Updated, results[0].Result);
     }
+
+    [Fact]
+    public void UpdateTable_TrimsTrailingWhitespaceBatch_AfterRemovingExtendedPropertyBatch()
+    {
+        // File ends with GO + whitespace-only batch after the sp_addextendedproperty batch.
+        // This exercises the while-loop in RemoveExtendedPropertyBatches that trims
+        // trailing all-whitespace batches from the kept list.
+        const string content =
+            "CREATE TABLE TrailBatch (Id INT)\r\n" +
+            "GO\r\n" +
+            "EXEC sp_addextendedproperty @name = N'OldProp', @value = N'v'\r\n" +
+            "GO\r\n" +
+            "   \r\n";
+
+        var filePath = CreateSqlFile("TrailBatch", content);
+
+        CreateUpdater().UpdateTable(new TableInfo { SchemaName = "dbo", Name = "TrailBatch", ExtendedProperties = [] });
+
+        var lines = File.ReadAllLines(filePath);
+        // Trailing whitespace batch must be gone; only the CREATE TABLE line remains
+        Assert.Single(lines);
+        Assert.Equal("CREATE TABLE TrailBatch (Id INT)", lines[0]);
+    }
+
+    [Fact]
+    public void UpdateTable_TrimsTrailingBlankLines_WithinLastBatch()
+    {
+        // File has trailing blank lines with no GO separator, so everything is one batch.
+        // This exercises the while-loop in RebuildFromBatches that removes trailing
+        // blank lines from the reassembled output.
+        const string content = "CREATE TABLE TrailLine (Id INT)\r\n\r\n";
+
+        var filePath = CreateSqlFile("TrailLine", content);
+
+        CreateUpdater().UpdateTable(new TableInfo { SchemaName = "dbo", Name = "TrailLine", ExtendedProperties = [] });
+
+        var lines = File.ReadAllLines(filePath);
+        Assert.Single(lines);
+        Assert.Equal("CREATE TABLE TrailLine (Id INT)", lines[0]);
+    }
 }
